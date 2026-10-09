@@ -1,6 +1,7 @@
 use super::{rendered_non_empty_lines, test_assets, test_md_theme};
 use crate::line_plain_text;
 use crate::markdown::{parse_markdown, parse_markdown_with_width};
+use ratatui_image::picker::Picker;
 
 #[test]
 fn code_block_after_blockquote_in_list_item_has_no_blank_gap_before() {
@@ -286,8 +287,18 @@ fn blockquote_multiline_source_in_list_item_indents_all_lines() {
 fn blockquote_long_line_in_list_item_wraps_with_correct_indent() {
     let (ss, theme) = test_assets();
     let md = "- one\n  > This is a long blockquote line that should wrap into multiple prefixed lines at a narrow width.\n";
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, 32, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        32,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     let quoted: Vec<_> = rendered.iter().filter(|line| line.contains('▏')).collect();
 

@@ -1,6 +1,7 @@
 use super::{rendered_non_empty_lines, test_assets, test_md_theme};
 use crate::markdown::{parse_markdown, parse_markdown_with_width};
 use crate::*;
+use ratatui_image::picker::Picker;
 
 #[test]
 fn inline_latex_renders_with_latex_style() {
@@ -210,8 +211,18 @@ fn mermaid_block_renders_in_framed_block() {
 fn oversized_horizontal_mermaid_reflows_vertically() {
     let (ss, theme) = test_assets();
     let src = "```mermaid\nflowchart LR\n  A[Collect request] --> B[Validate request] --> C[Store response]\n```\n";
-    let (lines, _, _, _) =
-        parse_markdown_with_width(src, &ss, &theme, 50, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        src,
+        &ss,
+        &theme,
+        50,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
 
     assert!(
@@ -236,8 +247,18 @@ fn oversized_mermaid_falls_back_instead_of_wrapping_diagram_rows() {
         "```mermaid\nflowchart TD\n  A[{}]\n```\n",
         "oversized ".repeat(10)
     );
-    let (lines, _, _, _) =
-        parse_markdown_with_width(&src, &ss, &theme, 50, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        &src,
+        &ss,
+        &theme,
+        50,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
 
     assert!(
@@ -254,8 +275,18 @@ fn oversized_mermaid_falls_back_instead_of_wrapping_diagram_rows() {
 fn oversized_class_diagram_uses_vertical_cards() {
     let (ss, theme) = test_assets();
     let src = "```mermaid\nclassDiagram\n  class Client {\n    +BackendCapabilities capabilities\n    +from_profile()\n  }\n  class BackendAdapter {\n    <<Protocol>>\n    +invoke(OperationDef, input, deadline)\n  }\n  Client *-- BackendAdapter\n```\n";
-    let (lines, _, _, _) =
-        parse_markdown_with_width(src, &ss, &theme, 32, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        src,
+        &ss,
+        &theme,
+        32,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
 
     assert!(

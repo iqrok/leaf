@@ -2,6 +2,7 @@ use super::{rendered_non_empty_lines, test_assets, test_md_theme};
 use crate::markdown::{
     display_width, iter_cluster_widths, parse_markdown_with_width, truncate_display_width,
 };
+use ratatui_image::picker::Picker;
 
 #[test]
 fn iter_cluster_widths_matches_display_width_across_scripts() {
@@ -35,8 +36,18 @@ fn paragraph_with_vs16_emoji_fits_render_width() {
 🍀️ **Leaf note:** a paragraph with enough words to force wrapping across the render width
 ";
     let width = 40;
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, width, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        width,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     assert!(!rendered.is_empty());
     for line in &rendered {
@@ -54,8 +65,18 @@ fn code_block_with_vs16_emoji_wraps_within_width() {
     let (ss, theme) = test_assets();
     let md = "```\naaaaaaaa 🍀️ bbbbbbbb cccccccc dddddddd eeeeeeee ffffffff\n```\n";
     let width = 30;
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, width, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        width,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     assert!(!rendered.is_empty());
     for line in &rendered {

@@ -5,6 +5,7 @@ use ratatui::{
     style::Style,
     text::{Line, Span},
 };
+use ratatui_image::picker::Picker;
 use syntect::parsing::SyntaxSet;
 
 #[test]
@@ -310,6 +311,8 @@ fn link_texts(md: &str, width: usize) -> Vec<(String, String)> {
         &test_md_theme(),
         false,
         true,
+        None,
+        &Picker::halfblocks(),
     )
     .into();
     link_spans

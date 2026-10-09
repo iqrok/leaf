@@ -2,13 +2,24 @@ use super::{rendered_non_empty_lines, test_assets, test_md_theme};
 use crate::markdown::{parse_markdown, parse_markdown_with_width};
 use crate::theme::app_theme;
 use crate::*;
+use ratatui_image::picker::Picker;
 
 #[test]
 fn narrow_tables_fit_render_width_and_wrap_cells() {
     let (ss, theme) = test_assets();
     let md = "| Column | Description | Value |\n| --- | --- | ---: |\n| Width | Terminal-dependent layout behavior | 80 |\n";
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, 36, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        36,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
 
     assert!(rendered.len() >= 6);
@@ -177,8 +188,18 @@ fn table_long_inline_code_wraps_without_clipping() {
     let code = "verylonginlinecodethatcannotfitinasinglenarrowcolumn";
     let md = format!("| Description |\n|---|\n| `{code}` |\n");
     let width = 24;
-    let (lines, _, _, _) =
-        parse_markdown_with_width(&md, &ss, &theme, width, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        &md,
+        &ss,
+        &theme,
+        width,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     let theme_colors = &app_theme().markdown;
 
@@ -216,8 +237,18 @@ fn table_long_inline_code_wraps_without_clipping() {
 fn table_link_after_text_keeps_row_width() {
     let (ss, theme) = test_assets();
     let md = "| Name | Link |\n|------|------|\n| foo | x [alpha beta gamma delta epsilon zeta](https://example.com) and [more](https://example.com) |\n| bar | plain text here |\n";
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, 20, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        20,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     let widths: Vec<usize> = rendered.iter().map(|line| display_width(line)).collect();
 
@@ -232,8 +263,18 @@ fn table_cell_with_vs16_emoji_fits_render_width() {
     let (ss, theme) = test_assets();
     let md = "| A | B |\n|---|---|\n| 🍀️ text long enough to wrap | short |\n";
     let width = 30;
-    let (lines, _, _, _) =
-        parse_markdown_with_width(md, &ss, &theme, width, &test_md_theme(), false, true).into();
+    let (lines, _, _, _) = parse_markdown_with_width(
+        md,
+        &ss,
+        &theme,
+        width,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
     let rendered = rendered_non_empty_lines(&lines);
     assert!(!rendered.is_empty());
     for line in &rendered {
