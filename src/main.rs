@@ -463,7 +463,7 @@ fn main() -> Result<()> {
         let format = inline::resolve_format(spec, is_tty);
 
         let at = app_theme();
-        let mut parsed = parse_markdown_with_width(
+        let parsed = parse_markdown_with_width(
             &src,
             &ss,
             &theme,
@@ -475,12 +475,14 @@ fn main() -> Result<()> {
             &image_picker,
         );
 
-        while parsed.lines.last().is_some_and(|l| {
+        // Inline output is plain text and can't carry graphics, so swap each image's
+        // reserved rows back to its placeholder before trimming trailing blanks.
+        let mut lines = markdown::replace_images_with_placeholders(parsed.lines, &parsed.images);
+        while lines.last().is_some_and(|l| {
             l.spans.is_empty() || l.spans.iter().all(|s| s.content.trim().is_empty())
         }) {
-            parsed.lines.pop();
+            lines.pop();
         }
-        let lines = parsed.lines;
 
         let stdout = io::stdout();
         let mut writer = io::BufWriter::new(stdout.lock());
@@ -488,6 +490,7 @@ fn main() -> Result<()> {
         return Ok(());
     }
 
+    markdown::enable_remote_images();
     let at = app_theme();
     let parsed = parse_markdown_with_width(
         &src,

@@ -18,7 +18,9 @@ pub(crate) mod width;
 mod wrapping;
 
 pub(crate) use highlight::highlight_line;
-pub(crate) use images::ImageEntry;
+#[cfg(test)]
+pub(crate) use images::fetch_remote_image;
+pub(crate) use images::{enable_remote_images, replace_images_with_placeholders, ImageEntry};
 pub(crate) use links::LinkSpan;
 pub(crate) use syntax::resolve_syntax;
 use tables::{handle_table_event, start_table, TableBuf};
@@ -524,13 +526,14 @@ pub(crate) fn parse_markdown_with_width(
                             image_entries.push(ImageEntry {
                                 rendered_start,
                                 slice,
+                                placeholder: images::image_placeholder(
+                                    &alt,
+                                    theme_colors.code_gutter,
+                                ),
                             });
                         }
                         None => {
-                            lines.push(Line::from(Span::styled(
-                                format!("[img: {alt}]"),
-                                Style::default().fg(theme_colors.code_gutter),
-                            )));
+                            lines.push(images::image_placeholder(&alt, theme_colors.code_gutter));
                         }
                     }
                 }
