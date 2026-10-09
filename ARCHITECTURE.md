@@ -39,6 +39,7 @@
   - `table_layout.rs`  :  table cell sizing, wrapping, and alignment algorithms
   - `latex.rs`  :  LaTeX-to-Unicode conversion: `unicodeit` + postprocessing for `\frac`, `\sqrt`, `^{}`, `_{}`
   - `mermaid.rs`  :  Mermaid diagram ASCII rendering
+  - `mermaid/er.rs`  :  ER diagrams, translated to class diagrams for mmdflux
   - `frontmatter.rs`  :  YAML frontmatter extraction and key-value parsing
   - `toc.rs`  :  TOC extraction and normalization
   - `width.rs`  :  width-aware helpers

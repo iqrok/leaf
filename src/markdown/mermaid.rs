@@ -6,6 +6,8 @@ use std::fmt::Write;
 use super::width::{display_width, iter_cluster_widths, truncate_display_width};
 use unicode_segmentation::UnicodeSegmentation;
 
+mod er;
+
 pub(crate) fn render(content: &str, max_width: usize) -> Option<String> {
     let trimmed = content.trim();
     if trimmed.is_empty() {
@@ -13,6 +15,9 @@ pub(crate) fn render(content: &str, max_width: usize) -> Option<String> {
     }
     if trimmed.starts_with("pie") {
         return render_pie(trimmed).filter(|rendered| fits_width(rendered, max_width));
+    }
+    if trimmed.starts_with("erDiagram") {
+        return er::render(trimmed, max_width);
     }
 
     let rendered = render_diagram(trimmed, OutputFormat::Text, &RenderConfig::default()).ok();
@@ -25,22 +30,22 @@ pub(crate) fn render(content: &str, max_width: usize) -> Option<String> {
 
     if trimmed.starts_with("classDiagram") {
         rendered.as_ref()?;
-        if !horizontal_class_layout_cannot_fit(trimmed, max_width) {
-            if let Some(horizontal) = use_horizontal_class_direction(trimmed) {
-                if let Ok(rendered) =
-                    render_diagram(&horizontal, OutputFormat::Text, &RenderConfig::default())
-                {
-                    if fits_width(&rendered, max_width) {
-                        return Some(rendered);
-                    }
-                }
-            }
-        }
-        return render_vertical_class_diagram(trimmed, max_width);
+        return render_horizontal_class_diagram(trimmed, max_width)
+            .or_else(|| render_vertical_class_diagram(trimmed, max_width));
     }
 
     let vertical = use_vertical_direction(trimmed)?;
     render_diagram(&vertical, OutputFormat::Text, &RenderConfig::default())
+        .ok()
+        .filter(|rendered| fits_width(rendered, max_width))
+}
+
+fn render_horizontal_class_diagram(content: &str, max_width: usize) -> Option<String> {
+    if horizontal_class_layout_cannot_fit(content, max_width) {
+        return None;
+    }
+    let horizontal = use_horizontal_class_direction(content)?;
+    render_diagram(&horizontal, OutputFormat::Text, &RenderConfig::default())
         .ok()
         .filter(|rendered| fits_width(rendered, max_width))
 }
@@ -206,7 +211,15 @@ fn render_vertical_class_diagram(content: &str, max_width: usize) -> Option<Stri
     if let Some(class) = current {
         classes.push(class);
     }
-    if classes.is_empty() {
+    render_class_cards(&classes, &relationships, max_width)
+}
+
+fn render_class_cards(
+    classes: &[ClassBlock],
+    relationships: &[String],
+    max_width: usize,
+) -> Option<String> {
+    if classes.is_empty() || max_width < 12 {
         return None;
     }
 
@@ -243,7 +256,7 @@ fn render_vertical_class_diagram(content: &str, max_width: usize) -> Option<Stri
         let _ = writeln!(out, "{heading}");
         let _ = writeln!(out, "{}", "─".repeat(display_width(&heading)));
         for relationship in relationships {
-            push_prefixed_wrapped_text(&mut out, &relationship, "• ", "  ", max_width);
+            push_prefixed_wrapped_text(&mut out, relationship, "• ", "  ", max_width);
         }
     }
 

@@ -306,6 +306,42 @@ fn oversized_class_diagram_uses_vertical_cards() {
 }
 
 #[test]
+fn er_diagram_renders_entities_and_cardinalities() {
+    let (ss, theme) = test_assets();
+    let src = "```mermaid\nerDiagram\n  CUSTOMER ||--o{ ORDER : places\n  CUSTOMER {\n    string name\n    string custNumber PK\n  }\n```\n";
+    let (lines, _, _, _) = parse_markdown_with_width(
+        src,
+        &ss,
+        &theme,
+        60,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
+    let rendered = rendered_non_empty_lines(&lines);
+
+    assert!(
+        rendered.iter().all(|line| display_width(line) <= 60),
+        "ER diagram should stay within the viewport: {rendered:?}"
+    );
+    assert!(
+        rendered.iter().all(|line| !line.contains("│1│")),
+        "a valid ER diagram should not fall back to source: {rendered:?}"
+    );
+    assert!(
+        rendered
+            .iter()
+            .any(|line| line.contains("string custNumber PK"))
+            && rendered.iter().any(|line| line.contains("places"))
+            && rendered.iter().any(|line| line.contains("0..*")),
+        "ER render should preserve attributes, labels, and cardinalities: {rendered:?}"
+    );
+}
+
+#[test]
 fn mermaid_block_in_blockquote_has_quote_prefix() {
     let (ss, theme) = test_assets();
     let (lines, _, _, _) = parse_markdown(
