@@ -342,6 +342,44 @@ fn er_diagram_renders_entities_and_cardinalities() {
 }
 
 #[test]
+fn gantt_chart_renders_timeline_bars() {
+    let (ss, theme) = test_assets();
+    let src = "```mermaid\ngantt\n  title Plan\n  section Build\n  Backend :done, b1, 2024-01-01, 14d\n  Release :milestone, after b1, 0d\n```\n";
+    let (lines, _, _, _) = parse_markdown_with_width(
+        src,
+        &ss,
+        &theme,
+        60,
+        &test_md_theme(),
+        false,
+        true,
+        None,
+        &Picker::halfblocks(),
+    )
+    .into();
+    let rendered = rendered_non_empty_lines(&lines);
+
+    assert!(
+        rendered.iter().all(|line| display_width(line) <= 60),
+        "Gantt chart should stay within the viewport: {rendered:?}"
+    );
+    assert!(
+        rendered.iter().all(|line| !line.contains("│1│")),
+        "a valid Gantt chart should not fall back to source: {rendered:?}"
+    );
+    assert!(
+        rendered
+            .iter()
+            .any(|line| line.contains("Backend") && line.contains('░'))
+            && rendered
+                .iter()
+                .any(|line| line.contains("Release") && line.contains('◆'))
+            && rendered.iter().any(|line| line.contains("2024-01-")),
+        "Gantt render should draw task bars, milestones, and the date axis: {rendered:?}"
+    );
+}
+
+#[test]
 fn mermaid_block_in_blockquote_has_quote_prefix() {
     let (ss, theme) = test_assets();
     let (lines, _, _, _) = parse_markdown(

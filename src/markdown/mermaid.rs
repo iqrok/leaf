@@ -7,6 +7,7 @@ use super::width::{display_width, iter_cluster_widths, truncate_display_width};
 use unicode_segmentation::UnicodeSegmentation;
 
 mod er;
+mod gantt;
 
 pub(crate) fn render(content: &str, max_width: usize) -> Option<String> {
     let trimmed = content.trim();
@@ -18,6 +19,9 @@ pub(crate) fn render(content: &str, max_width: usize) -> Option<String> {
     }
     if trimmed.starts_with("erDiagram") {
         return er::render(trimmed, max_width);
+    }
+    if trimmed.starts_with("gantt") {
+        return gantt::render(trimmed, max_width);
     }
 
     let rendered = render_diagram(trimmed, OutputFormat::Text, &RenderConfig::default()).ok();
